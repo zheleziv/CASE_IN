@@ -1,50 +1,66 @@
-package case_in.db.demo.entity;
+package case_in.db.demo.response;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.sql.Date;
 import java.sql.Time;
 
-@Entity
-@Table(name = "dataset", schema = "catalog")
-public class Dataset
+public class DatasetResponse
 {
-    public Dataset() {
-        this.transportId  = "";
-    }
-
-    @Id
-    @Column(name="id")
-    @GeneratedValue
-    private Long id;
-    @Column(name="transport_id")
     private String transportId;
-    @Column(name="date")
     private Date date;
-    @Column(name="mileage")
     private double mileage;
-    @Column(name="driving_time")
     private Time drivingTime;
-    @Column(name="engine_operating_time")
     private Time engineOperatingTime;
-    @Column(name="engine_in_motion_time")
     private Time engineInMotionTime;
-    @Column(name="engine_WO_motion_time")
     private Time engineWOMotionTime;
-    @Column(name="engine_idling_time")
     private Time engineIdlingTime;
-    @Column(name="engine_normal_rpm_time")
     private Time engineNormaRpmTime;
-    @Column(name="engine_max_rpm_time")
     private Time engineMaxRpmTime;
-    @Column(name="engine_off_time")
     private Time engineOffTime;
-    @Column(name="engine_under_load_time")
     private Time engineUnderLoadTime;
-    @Column(name="initial_fuel_volume")
     private double initialFuelVolume;
-    @Column(name="final_fuel_volume")
     private double finalFuelVolume;
 
+    public DatasetResponse(String transportId, Date date,
+                           double mileage, Time drivingTime,
+                           Time engineOperatingTime, Time engineInMotionTime,
+                           Time engineWOMotionTime, Time engineIdlingTime,
+                           Time engineNormaRpmTime, Time engineMaxRpmTime,
+                           Time engineOffTime, Time engineUnderLoadTime,
+                           double initialFuelVolume, double finalFuelVolume) {
+        this.transportId = transportId;
+        this.date = date;
+        this.mileage = mileage;
+        this.drivingTime = drivingTime;
+        this.engineOperatingTime = engineOperatingTime;
+        this.engineInMotionTime = engineInMotionTime;
+        this.engineWOMotionTime = engineWOMotionTime;
+        this.engineIdlingTime = engineIdlingTime;
+        this.engineNormaRpmTime = engineNormaRpmTime;
+        this.engineMaxRpmTime = engineMaxRpmTime;
+        this.engineOffTime = engineOffTime;
+        this.engineUnderLoadTime = engineUnderLoadTime;
+        this.initialFuelVolume = initialFuelVolume;
+        this.finalFuelVolume = finalFuelVolume;
+    }
+
+    public String getTransportId() {
+        return transportId;
+    }
+
+    public void setTransportId(String transportId) {
+        this.transportId = transportId;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
     public double getMileage() {
         return mileage;
@@ -141,29 +157,4 @@ public class Dataset
     public void setFinalFuelVolume(double finalFuelVolume) {
         this.finalFuelVolume = finalFuelVolume;
     }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getTransportId() {
-        return transportId;
-    }
-
-    public void setTransportId(String transportId) {
-        this.transportId = transportId;
-    }
-
 }

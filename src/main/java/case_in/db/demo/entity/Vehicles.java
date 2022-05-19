@@ -14,6 +14,14 @@ public class Vehicles
     private String id;
     @Column(name="transport_name")
     private String transportName;
+
+    public Vehicles() {
+        this.id = "";
+        this.transportName = "";
+        this.transportNumber = "";
+        this.transportType = "";
+    }
+
     @Column(name="transport_number")
     private String transportNumber;
     @Column(name="transport_type")

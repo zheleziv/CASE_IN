@@ -52,20 +52,17 @@ public class FileUploadController {
                 stream2.close();
 
                 List<Vehicles> listVehicles = excelReader.readFromExcel(name1, name2);
+                List<Dataset> listDataset = excelReader.readFromExcelDataset(name1, name2);
                 for(Vehicles vehicles : listVehicles)
                 {
                     if(!vehiclesRepository.findById(vehicles.getId()).isPresent()) vehiclesRepository.save(vehicles);
-                    else continue;
                 }
-                List<Dataset> listDataset = excelReader.readFromExcelDataset(name1, name2);
+
                 for(Dataset dataset : listDataset)
                 {
-                    System.out.println(dataset.getDate()+ " " + dataset.getId());
-
-//                    if(datasetRepository.findAllByDate(dataset.getDate()).stream().map(dataset -> System));
-//                    System.out.println(datasetRepository.findByDateAndId(dataset.getDate(), dataset.getId()).isPresent());
-//                    if(datasetRepository.findByDateAndId(dataset.getDate(), dataset.getId()).isPresent()) datasetRepository.save(dataset);
-//                    else continue;
+                    if(!datasetRepository.findByDateAndTransportId(dataset.getDate(), dataset.getTransportId())
+                            .isPresent())
+                        datasetRepository.save(dataset);
                 }
 
                 return "Вы удачно загрузили " + name1 + " и " + name2 + " на сервер!";

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import javax.transaction.Transactional;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.Time;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -76,29 +77,10 @@ public class excelReader
         }
         book.close();
 
-//        for (Map.Entry<Integer, Vehicles> entry : mapVehicles.entrySet()) {
-//            System.out.println("1 =  " + entry.getKey() + " 2 = " + entry.getValue().getId());
-//        }
 
-        Workbook book1 = new HSSFWorkbook(new FileInputStream(file1));
-        Sheet sheet1 = book1.getSheet("Sheet1");
-        Iterator<Row> row = sheet1.iterator();
-        row.next();
-        while(row.hasNext())
-        {
-            Row tempRow = row.next();
-            if(mapVehicles.keySet().contains((int)tempRow.getCell(0).getNumericCellValue()))
-            {
-//                mapVehiclesDataset.put(convertToDataset(tempRow, mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId()),
-//                                mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()));
-                convertToDataset(tempRow, mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId());
-
-            }
-
-        }
 
         return rtrn;
-        }
+    }
 
         public static List<Dataset> readFromExcelDataset(String file1, String file2) throws IOException, ParseException {
         String tmp;
@@ -120,6 +102,7 @@ public class excelReader
         Pattern pattern = Pattern.compile("^\\d+[а-яА-Я]?\\s");
         Matcher matcher;
 
+            System.out.println("1");
         int max = sheet.getLastRowNum();
         for (int i = 0; i <= max; i++)
         {
@@ -136,13 +119,17 @@ public class excelReader
 
             if(cell1.getCellType() != HSSFCell.CELL_TYPE_STRING) continue; //throw new IOException("Нет названия транспорта");
             else {
+
                 String tmpString = cell1.getStringCellValue();
                 matcher = pattern.matcher(tmpString);
-                if (matcher.find() && (cell2.getCellType() == HSSFCell.CELL_TYPE_NUMERIC))
-                {
-                    tmpVehicles = convertToVehicles(tmpString, matcher.end());
-                    rtrn.add(tmpVehicles);
-                    mapVehicles.put((int)cell2.getNumericCellValue(), tmpVehicles);
+                if ((cell2.getCellType() == HSSFCell.CELL_TYPE_NUMERIC)) {
+                    if (matcher.find()) {
+                        tmpVehicles = convertToVehicles(tmpString, matcher.end());
+                        rtrn.add(tmpVehicles);
+                        mapVehicles.put((int) cell2.getNumericCellValue(), tmpVehicles);
+                        System.out.println(cell2.getNumericCellValue() + " " + tmpVehicles.getId());
+                    }
+
                 }
             }
         }
@@ -157,11 +144,12 @@ public class excelReader
             Row tempRow = row.next();
             if(mapVehicles.keySet().contains((int)tempRow.getCell(0).getNumericCellValue()))
             {
+                System.out.println(tempRow.getCell(0).getNumericCellValue());
 //                mapVehiclesDataset.put(convertToDataset(tempRow, mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId()),
 //                                mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()));
-
-                System.out.println();
-                listDataset.add(convertToDataset(tempRow, mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId()));
+                if(!mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId().isEmpty()){
+                    listDataset.add(convertToDataset(tempRow, mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId()));
+                }
             }
 
         }
@@ -169,10 +157,29 @@ public class excelReader
         return listDataset;
     }
 
+    private static double doubleVerification(Cell incell)
+    {
+        Pattern pattern = Pattern.compile("^\\d+");
+        Matcher matcher;
+
+        if(incell != null) {
+            if (incell.getCellType() == Cell.CELL_TYPE_NUMERIC)
+                return incell.getNumericCellValue();
+            if (incell.getCellType() == Cell.CELL_TYPE_STRING)
+            {
+                matcher = pattern.matcher(incell.getStringCellValue());
+                if(matcher.find())
+                    return Double.parseDouble(incell.getStringCellValue());
+            }
+
+
+        }
+        return 0.0;
+    }
     private static Dataset convertToDataset(Row row, String id) throws ParseException {
         Dataset dataset = new Dataset();
         //id cell
-        dataset.setId(id);
+        dataset.setTransportId(id);
 
         //data cell
         java.util.Date data = new SimpleDateFormat("dd.MM.yyyy").parse(row.getCell(1).getStringCellValue());
@@ -192,8 +199,8 @@ public class excelReader
         dataset.setEngineOffTime(new java.sql.Time(formatter.parse(verificationTime(row.getCell(10))).getTime()));
         dataset.setEngineUnderLoadTime(new java.sql.Time(formatter.parse(verificationTime(row.getCell(11))).getTime()));
         //fuel cells
-        dataset.setInitialFuelVolume(0.0);
-        dataset.setFinalFuelVolume(0.0);
+        dataset.setInitialFuelVolume(doubleVerification(row.getCell(12)));
+        dataset.setFinalFuelVolume(doubleVerification(row.getCell(13)));
 
         return dataset;
     }
@@ -202,7 +209,7 @@ public class excelReader
     private static String verificationTime(Cell incell)
     {
         Pattern pattern = Pattern.compile("^\\d\\d:\\d\\d:\\d\\d$");
-        if(incell.getCellType() == Cell.CELL_TYPE_STRING)
+        if((incell != null) && (incell.getCellType() == Cell.CELL_TYPE_STRING))
         {
             Matcher matcher = pattern.matcher(incell.getStringCellValue());
             if(matcher.find()) return incell.getStringCellValue();

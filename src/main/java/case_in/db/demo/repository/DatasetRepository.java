@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface DatasetRepository extends JpaRepository <Dataset, String>
 {
-    List<Dataset> findAllById(String Id);
+    List<Dataset> findAllByTransportId(String Id);
     List<Dataset> findAllByDate(Date date);
-    Optional<Dataset> findByDateAndId(Date date, String Id);
+    Optional<Dataset> findByDateAndTransportId(Date date, String transportId);
 }

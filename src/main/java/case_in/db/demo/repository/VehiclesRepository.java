@@ -10,5 +10,6 @@ public interface VehiclesRepository extends JpaRepository<Vehicles, String>
 {
     List<Vehicles> findAllByTransportName(String TransportName);
     List<Vehicles> findAllByTransportType(String TransportType);
+    List<Vehicles> findAllByTransportNameAndAndTransportType(String TransportName,String TransportType);
     Optional<Vehicles> findById(String Id);
 }

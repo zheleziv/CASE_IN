@@ -1,7 +1,9 @@
 package case_in.db.demo.controllers;
 
+import case_in.db.demo.entity.Dataset;
 import case_in.db.demo.entity.Vehicles;
 import case_in.db.demo.excel.excelReader;
+import case_in.db.demo.repository.DatasetRepository;
 import case_in.db.demo.repository.VehiclesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,8 @@ import java.util.List;
 public class FileUploadController {
     @Autowired
     VehiclesRepository vehiclesRepository;
+    @Autowired
+    DatasetRepository datasetRepository;
 
     @RequestMapping(value="/upload", method= RequestMethod.GET)
     public @ResponseBody String provideUploadInfo() {
@@ -53,6 +57,17 @@ public class FileUploadController {
                     if(!vehiclesRepository.findById(vehicles.getId()).isPresent()) vehiclesRepository.save(vehicles);
                     else continue;
                 }
+                List<Dataset> listDataset = excelReader.readFromExcelDataset(name1, name2);
+                for(Dataset dataset : listDataset)
+                {
+                    System.out.println(dataset.getDate()+ " " + dataset.getId());
+
+//                    if(datasetRepository.findAllByDate(dataset.getDate()).stream().map(dataset -> System));
+//                    System.out.println(datasetRepository.findByDateAndId(dataset.getDate(), dataset.getId()).isPresent());
+//                    if(datasetRepository.findByDateAndId(dataset.getDate(), dataset.getId()).isPresent()) datasetRepository.save(dataset);
+//                    else continue;
+                }
+
                 return "Вы удачно загрузили " + name1 + " и " + name2 + " на сервер!";
             } catch (Exception e) {
                 return "Вам не удалось загрузить " + name1 + " или " + name2 + " => " + e.getMessage();

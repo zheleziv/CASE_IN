@@ -2,26 +2,20 @@ package case_in.db.demo.excel;
 
 import case_in.db.demo.entity.Dataset;
 import case_in.db.demo.entity.Vehicles;
-import case_in.db.demo.repository.VehiclesRepository;
-import ch.qos.logback.core.net.SyslogOutputStream;
-import com.fasterxml.jackson.databind.util.StdDateFormat;
-import javafx.scene.shape.PathElement;
+import case_in.db.demo.repository.DatasetRepository;
 import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.aspectj.weaver.World;
-import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Controller;
 
+import javax.transaction.Transactional;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.sql.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -38,6 +32,7 @@ public class excelReader
         String tmp;
         List<Vehicles> rtrn = new ArrayList<Vehicles>();
         Map<Integer, Vehicles> mapVehicles = new HashMap<>();
+        Map<List<Dataset>, Vehicles> mapVehiclesDataset = new HashMap<>();
 
         if(!file1.contains("dataset_stage_"))
         {
@@ -54,7 +49,7 @@ public class excelReader
         Matcher matcher;
 
         int max = sheet.getLastRowNum();
-        for (int i = 0; i < max; i++)
+        for (int i = 0; i <= max; i++)
         {
             Vehicles tmpVehicles = new Vehicles();
             Row row = sheet.getRow(i);
@@ -81,9 +76,9 @@ public class excelReader
         }
         book.close();
 
-        for (Map.Entry<Integer, Vehicles> entry : mapVehicles.entrySet()) {
-            System.out.println("1 =  " + entry.getKey() + " 2 = " + entry.getValue().getId());
-        }
+//        for (Map.Entry<Integer, Vehicles> entry : mapVehicles.entrySet()) {
+//            System.out.println("1 =  " + entry.getKey() + " 2 = " + entry.getValue().getId());
+//        }
 
         Workbook book1 = new HSSFWorkbook(new FileInputStream(file1));
         Sheet sheet1 = book1.getSheet("Sheet1");
@@ -92,33 +87,111 @@ public class excelReader
         while(row.hasNext())
         {
             Row tempRow = row.next();
-//            System.out.println(tempRow.getCell(0).getCellType() + " " + tempRow.getCell(0).getNumericCellValue());
-//            System.out.println(mapVehicles.keySet());
             if(mapVehicles.keySet().contains((int)tempRow.getCell(0).getNumericCellValue()))
+            {
+//                mapVehiclesDataset.put(convertToDataset(tempRow, mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId()),
+//                                mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()));
                 convertToDataset(tempRow, mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId());
+
+            }
+
         }
 
         return rtrn;
+        }
+
+        public static List<Dataset> readFromExcelDataset(String file1, String file2) throws IOException, ParseException {
+        String tmp;
+        List<Vehicles> rtrn = new ArrayList<Vehicles>();
+        Map<Integer, Vehicles> mapVehicles = new HashMap<>();
+        List<Dataset> listDataset = new ArrayList<>();
+
+        if(!file1.contains("dataset_stage_"))
+        {
+            if(!file2.contains("dataset_stage_")) throw new IOException("Нет датасета");
+            tmp = file1;
+            file1 = file2;
+            file2 = tmp;
+        } else if(!file2.contains("vehicles_") && !file1.contains("vehicles_"))throw new IOException("Нет vehicles");
+
+        Workbook book = new HSSFWorkbook(new FileInputStream(file2));
+        Sheet sheet = book.getSheet("Sheet1");
+
+        Pattern pattern = Pattern.compile("^\\d+[а-яА-Я]?\\s");
+        Matcher matcher;
+
+        int max = sheet.getLastRowNum();
+        for (int i = 0; i <= max; i++)
+        {
+            Vehicles tmpVehicles = new Vehicles();
+            Row row = sheet.getRow(i);
+            int maxCell = row.getLastCellNum();
+
+            if(maxCell != 2) continue;
+            Cell cell1 = row.getCell(0, Row.RETURN_BLANK_AS_NULL);
+            Cell cell2 = row.getCell(1, Row.RETURN_BLANK_AS_NULL);
+
+            if (cell1 == null || cell1.getCellType() == Cell.CELL_TYPE_BLANK) continue;
+            if (cell2 == null || cell2.getCellType() == Cell.CELL_TYPE_BLANK) continue;
+
+            if(cell1.getCellType() != HSSFCell.CELL_TYPE_STRING) continue; //throw new IOException("Нет названия транспорта");
+            else {
+                String tmpString = cell1.getStringCellValue();
+                matcher = pattern.matcher(tmpString);
+                if (matcher.find() && (cell2.getCellType() == HSSFCell.CELL_TYPE_NUMERIC))
+                {
+                    tmpVehicles = convertToVehicles(tmpString, matcher.end());
+                    rtrn.add(tmpVehicles);
+                    mapVehicles.put((int)cell2.getNumericCellValue(), tmpVehicles);
+                }
+            }
+        }
+        book.close();
+
+        Workbook book1 = new HSSFWorkbook(new FileInputStream(file1));
+        Sheet sheet1 = book1.getSheet("Sheet1");
+        Iterator<Row> row = sheet1.iterator();
+        row.next();
+        while(row.hasNext())
+        {
+            Row tempRow = row.next();
+            if(mapVehicles.keySet().contains((int)tempRow.getCell(0).getNumericCellValue()))
+            {
+//                mapVehiclesDataset.put(convertToDataset(tempRow, mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId()),
+//                                mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()));
+
+                System.out.println();
+                listDataset.add(convertToDataset(tempRow, mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId()));
+            }
+
+        }
+
+        return listDataset;
     }
 
     private static Dataset convertToDataset(Row row, String id) throws ParseException {
         Dataset dataset = new Dataset();
+        //id cell
         dataset.setId(id);
+
+        //data cell
         java.util.Date data = new SimpleDateFormat("dd.MM.yyyy").parse(row.getCell(1).getStringCellValue());
         dataset.setDate(new java.sql.Date(data.getTime()));
+        //mileage cell
         dataset.setMileage(row.getCell(2).getNumericCellValue());
+
+        //time cells
         DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
-        dataset.setDrivingTime(new java.sql.Time(formatter.parse(incell(row.getCell(3))).getTime()));
-        dataset.setEngineOperatingTime(new java.sql.Time(formatter.parse(incell(row.getCell(4))).getTime()));
-        dataset.setEngineInMotionTime(new java.sql.Time(formatter.parse(incell(row.getCell(5))).getTime()));
-        dataset.setEngineWOMotionTime(new java.sql.Time(formatter.parse(incell(row.getCell(6))).getTime()));
-        dataset.setEngineIdlingTime(new java.sql.Time(formatter.parse(incell(row.getCell(7))).getTime()));
-        dataset.setEngineNormaRpmTime(new java.sql.Time(formatter.parse(incell(row.getCell(8))).getTime()));
-        dataset.setEngineMaxRpmTime(new java.sql.Time(formatter.parse(incell(row.getCell(9))).getTime()));
-//        dataset.setEngineOffTime(new java.sql.Time(formatter.parse(incell(row.getCell(10))).getTime()));
-//        if(row.getCell(10).getCellType() == Cell.CELL_TYPE_NUMERIC) System.out.println(row.getCell(10).getNumericCellValue());
-//        else if(row.getCell(10).getCellType() == Cell.CELL_TYPE_STRING) System.out.println(row.getCell(10).getStringCellValue());
-        dataset.setEngineUnderLoadTime(new java.sql.Time(formatter.parse(incell(row.getCell(11))).getTime()));
+        dataset.setDrivingTime(new java.sql.Time(formatter.parse(verificationTime(row.getCell(3))).getTime()));
+        dataset.setEngineOperatingTime(new java.sql.Time(formatter.parse(verificationTime(row.getCell(4))).getTime()));
+        dataset.setEngineInMotionTime(new java.sql.Time(formatter.parse(verificationTime(row.getCell(5))).getTime()));
+        dataset.setEngineWOMotionTime(new java.sql.Time(formatter.parse(verificationTime(row.getCell(6))).getTime()));
+        dataset.setEngineIdlingTime(new java.sql.Time(formatter.parse(verificationTime(row.getCell(7))).getTime()));
+        dataset.setEngineNormaRpmTime(new java.sql.Time(formatter.parse(verificationTime(row.getCell(8))).getTime()));
+        dataset.setEngineMaxRpmTime(new java.sql.Time(formatter.parse(verificationTime(row.getCell(9))).getTime()));
+        dataset.setEngineOffTime(new java.sql.Time(formatter.parse(verificationTime(row.getCell(10))).getTime()));
+        dataset.setEngineUnderLoadTime(new java.sql.Time(formatter.parse(verificationTime(row.getCell(11))).getTime()));
+        //fuel cells
         dataset.setInitialFuelVolume(0.0);
         dataset.setFinalFuelVolume(0.0);
 
@@ -126,9 +199,15 @@ public class excelReader
     }
 
 
-    private static String incell(Cell incell)
+    private static String verificationTime(Cell incell)
     {
-        if(incell.getCellType() == Cell.CELL_TYPE_STRING) return incell.getStringCellValue();
+        Pattern pattern = Pattern.compile("^\\d\\d:\\d\\d:\\d\\d$");
+        if(incell.getCellType() == Cell.CELL_TYPE_STRING)
+        {
+            Matcher matcher = pattern.matcher(incell.getStringCellValue());
+            if(matcher.find()) return incell.getStringCellValue();
+        }
+
         return "00:00:00";
     }
 
@@ -139,7 +218,7 @@ public class excelReader
                 "МКД|Бетоносмеситель|ПРМ( с КМУ| )|ПКСР|Тягач( с КМУ| )|Лесовоз|Бортовой|Продукты|" +
                 "Вакуум|Бульдозер|Трубоукладчик|Сварочный|Вахта|Грейдер|Виброкаток|Буровая установка|" +
                 "Лаборатория|Самосвал|Вода)");
-        Pattern pattern1 = Pattern.compile("[а-яА-Я]?[0-9]{3,4}[а-яА-Я]{2}[0-9]{2,3}");
+        Pattern pattern1 = Pattern.compile("[а-яА-Я]?\\d{3,4}[а-яА-Я]{2}\\d{2,3}");
 
         Matcher matcher = pattern.matcher(str);
         vehicles.setId(str.substring(0, end).trim());

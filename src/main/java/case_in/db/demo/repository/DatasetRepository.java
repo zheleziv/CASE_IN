@@ -11,5 +11,6 @@ public interface DatasetRepository extends JpaRepository <Dataset, String>
 {
     List<Dataset> findAllByTransportId(String Id);
     List<Dataset> findAllByDate(Date date);
+    List<Dataset> findAll();
     Optional<Dataset> findByDateAndTransportId(Date date, String transportId);
 }

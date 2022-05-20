@@ -31,7 +31,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter
                 //Доступ только для не зарегистрированных пользователей
                 .antMatchers("/registration", "/vehicles/add", "/getAllVehicles",
                         "/getVehiclesById", "/getAllVehiclesByName", "/getAllVehiclesByType",
-                        "/getAllType","/getDatasetById","/getAllDatasetById").not().fullyAuthenticated()
+                        "/getAllType","/getDatasetById","/getAllDatasetById",
+                        "/getAllDatasetByIdAndMonth","/getAllDate",
+                        "/getAllDatasetByIdAndDateAndDate").not().fullyAuthenticated()
                 //Доступ только для пользователей с ролью Администратор
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/news").hasRole("USER")

@@ -127,7 +127,6 @@ public class excelReader
                         tmpVehicles = convertToVehicles(tmpString, matcher.end());
                         rtrn.add(tmpVehicles);
                         mapVehicles.put((int) cell2.getNumericCellValue(), tmpVehicles);
-                        System.out.println(cell2.getNumericCellValue() + " " + tmpVehicles.getId());
                     }
 
                 }
@@ -142,18 +141,15 @@ public class excelReader
         while(row.hasNext())
         {
             Row tempRow = row.next();
-            if(mapVehicles.keySet().contains((int)tempRow.getCell(0).getNumericCellValue()))
+            if((tempRow.getCell(0) != null) && (mapVehicles.keySet().contains((int)tempRow.getCell(0).getNumericCellValue())))
             {
-                System.out.println(tempRow.getCell(0).getNumericCellValue());
-//                mapVehiclesDataset.put(convertToDataset(tempRow, mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId()),
-//                                mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()));
-                if(!mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId().isEmpty()){
+
+                if(!mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId().isEmpty())
+                {
                     listDataset.add(convertToDataset(tempRow, mapVehicles.get((int)tempRow.getCell(0).getNumericCellValue()).getId()));
                 }
             }
-
         }
-
         return listDataset;
     }
 

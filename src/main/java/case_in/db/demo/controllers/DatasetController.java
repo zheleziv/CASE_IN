@@ -33,10 +33,13 @@ public class DatasetController
     {
         List<Dataset> datasetList = new ArrayList<>();
         java.sql.Date sqlDate = new Date(2021-1900,Month - 1,1);
+        java.sql.Date sqlDateEnd = new Date(2021-1900,Month,1);
         Optional<Dataset> datasetOptional;
         for(int i = 2; i <= 32; i++)
         {
             sqlDate = new Date(2021-1900,Month - 1,i - 1);
+            if(sqlDate.equals(sqlDateEnd)) break;
+            System.out.println(sqlDate + " " + i);
             datasetOptional = datasetRepository.findByDateAndTransportId(sqlDate, Id);
             if(datasetOptional.isPresent()) datasetList.add(datasetOptional.get());
         }

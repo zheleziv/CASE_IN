@@ -165,4 +165,22 @@ public class AnaliseMonthResponse {
         this.days = days;
     }
 
+    public AnaliseMonthResponse(Analise analise) {
+        this.transportId = analise.getTransportId();
+        this.month = analise.getMonth();
+        this.mileage = analise.getMileage();
+        this.drivingTime = analise.getDrivingTime();
+        this.engineOperatingTime = analise.getEngineOperatingTime();
+        this.engineInMotionTime = analise.getEngineInMotionTime();
+        this.engineWOMotionTime = analise.getEngineWOMotionTime();
+        this.engineIdlingTime = analise.getEngineIdlingTime();
+        this.engineNormaRpmTime = analise.getEngineNormaRpmTime();
+        this.engineMaxRpmTime = analise.getEngineMaxRpmTime();
+        this.engineOffTime = analise.getEngineOffTime();
+        this.engineUnderLoadTime = analise.getEngineUnderLoadTime();
+        this.initialFuelVolume = analise.getInitialFuelVolume();
+        this.finalFuelVolume = analise.getFinalFuelVolume();
+        this.days = analise.getDays();
+    }
+
 }

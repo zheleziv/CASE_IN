@@ -19,9 +19,7 @@
     <sec:authorize access="isAuthenticated()">
         <h4><a href="/logout">Выйти</a></h4>
     </sec:authorize>
-    <h4><a href="/admin">Пользователи (только админ)</a></h4>
-    <h1><a href="https://www.youtube.com/watch?v=693AOZ0_Wdg">КОРОЧЕ! ЧИТЫ - БАН! КЕМПЕРCТВО - БАН! ОСКАРБЛЕНИЕ - БАН! ООСКОРБЛЕНИЕ АДМИНИСТРАЦИИ - РАСТРЕЛ, ПОТОМ БАН!
-        всем удачи!</a></h1>
+    <h4><a href="/admin">Пользователи и загрузка данных(только админ)</a></h4>
 </div>
 </body>
 </html>

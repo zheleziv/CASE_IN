@@ -9,6 +9,7 @@ import java.util.Optional;
 
 public interface AnaliseRepository extends JpaRepository<Analise, String> {
     List<Analise> findAll();
-    Optional<Analise> findByIdAndMonth(String Id, Integer month);
+    Optional<Analise> findByTransportIdAndMonth(String Id, Integer month);
     List<Analise> findAllByTransportId(String Id);
+    List<Analise> findAllByType(String Type);
 }

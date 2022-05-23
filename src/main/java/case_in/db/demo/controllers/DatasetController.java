@@ -21,10 +21,7 @@ import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -79,6 +76,8 @@ public class DatasetController
                         response.getFinalFuelVolume())).
                 collect(Collectors.toList());
     }
+
+
     @RequestMapping(value = "/getAnaliseByIdAndDateAndDate", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<AnaliseResponse> getAnaliseByIdAndDateAndDate(String Id, String Date1, String Date2, Model model) throws ParseException
     {
@@ -127,8 +126,397 @@ public class DatasetController
         return ff;
     }
 
-    @RequestMapping(value = "/makeCalendarYear", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public HttpStatus getCalendarYear(Model model) throws ParseException
+    @RequestMapping(value = "/makeCalendar5", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public HttpStatus makeAnaliseData(Model model)
+    {
+        List<Vehicles> vehicles = vehiclesRepository.findAll();
+        List<String> ids = new ArrayList<>();
+        vehicles.forEach(e -> ids.add(e.getId()));
+        Optional<Analise> analiseOptional;
+        Optional<Analise> analiseOptionalZapas;
+        Analise analise;
+        ArrayList<Integer> leto = new ArrayList<>(Arrays.asList(4,5,6,7,8,9));
+        ArrayList<Integer> zima = new ArrayList<>(Arrays.asList(10,11,12,1,2,3));
+
+        for(String e : ids)
+        {
+            String type = vehiclesRepository.findById(e).get().getTransportType();
+            System.out.println(type);
+            for(int i : zima) //за зимний период
+            {
+                analiseOptional = analiseRepository.findByTransportIdAndMonth(e,i);
+                if(analiseOptional.isPresent())
+                {
+                    analiseOptional.get().setSeason(1);
+                    if(i > 1)
+                    {
+                        analiseOptionalZapas = analiseRepository.findByTransportIdAndMonth(e,i - 1);
+                        if(analiseOptionalZapas.isPresent() && analiseOptionalZapas.get().getEngineOffTime() > 0)  analiseOptional.get().setDifEngineOffTime(
+                                (float)analiseOptional.get().getEngineOffTime()
+                                        / (float)analiseOptionalZapas.get().getEngineOffTime());
+                    }
+                    analiseOptional.get().setType(type);
+                    analiseRepository.save(analiseOptional.get());
+                }
+            }
+            for(int j : leto) //за зимний период
+            {
+                analiseOptional = analiseRepository.findByTransportIdAndMonth(e,j);
+                if(analiseOptional.isPresent())
+                {
+                    analiseOptional.get().setSeason(0);
+                    if(j > 1)
+                    {
+                        analiseOptionalZapas = analiseRepository.findByTransportIdAndMonth(e,j - 1);
+                        if(analiseOptionalZapas.isPresent() && analiseOptionalZapas.get().getEngineOffTime() > 0) analiseOptional.get().setDifEngineOffTime(
+                                (float)analiseOptional.get().getEngineOffTime()
+                                            / (float)analiseOptionalZapas.get().getEngineOffTime());
+
+                    }
+                    analiseOptional.get().setType(type);
+                    analiseRepository.save(analiseOptional.get());
+                }
+            }
+
+        }
+
+        return HttpStatus.ACCEPTED;
+    }
+
+    @RequestMapping(value = "/makeCalendar2", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public HttpStatus makeCalendar(Model model)
+    {
+        List<Vehicles> vehicles = vehiclesRepository.findAll();
+        List<String> ids = new ArrayList<>();
+        vehicles.forEach(e -> ids.add(e.getId()));
+        Optional<Analise> analiseOptional;
+        Analise analise;
+
+        ArrayList<Integer> leto = new ArrayList<>(Arrays.asList(4,5,6,7,8,9));
+        ArrayList<Integer> zima = new ArrayList<>(Arrays.asList(10,11,12,1,2,3));
+
+        for(String e : ids)
+        {
+            double mileage = 0;
+            long drivingTime = 0;
+            long engineOperatingTime = 0;
+            long engineInMotionTime = 0;
+            long engineWOMotionTime = 0;
+            long engineIdlingTime = 0;
+            long engineNormaRpmTime = 0;
+            long engineMaxRpmTime = 0;
+            long engineOffTime = 0;
+            long engineUnderLoadTime = 0;
+            double initialFuelVolume = 0;
+            double finalFuelVolume = 0;
+            int day = 1;
+
+            double mileageYear = 0;
+            long drivingTimeYear = 0;
+            long engineOperatingTimeYear = 0;
+            long engineInMotionTimeYear = 0;
+            long engineWOMotionTimeYear = 0;
+            long engineIdlingTimeYear = 0;
+            long engineNormaRpmTimeYear = 0;
+            long engineMaxRpmTimeYear = 0;
+            long engineOffTimeYear = 0;
+            long engineUnderLoadTimeYear = 0;
+            double initialFuelVolumeYear = 0;
+            double finalFuelVolumeYear = 0;
+            int dayYear = 0;
+
+            for(int j : zima) //за зимний период
+            {
+                analiseOptional = analiseRepository.findByTransportIdAndMonth(e,j);
+                if(analiseOptional.isPresent())
+                {
+                    analise = analiseOptional.get();
+                    mileage += analise.getMileage();
+                    drivingTime += analise.getDrivingTime();
+                    engineOperatingTime += analise.getEngineOperatingTime();
+                    engineInMotionTime += analise.getEngineInMotionTime();
+                    engineWOMotionTime += analise.getEngineWOMotionTime();
+                    engineIdlingTime += analise.getEngineIdlingTime();
+                    engineNormaRpmTime += analise.getEngineNormaRpmTime();
+                    engineMaxRpmTime += analise.getEngineMaxRpmTime();
+                    engineOffTime += analise.getEngineOffTime();
+                    engineUnderLoadTime += analise.getEngineUnderLoadTime();
+                    initialFuelVolume += analise.getInitialFuelVolume();
+                    finalFuelVolume += analise.getFinalFuelVolume();
+                    day += analise.getDays();
+                }
+            }
+            if(!analiseRepository.findByTransportIdAndMonth(e,13).isPresent())
+            {
+                Analise analiseOnSave = new Analise();
+                analiseOnSave.setMonth(13);
+                analiseOnSave.setMileage(mileage);
+                analiseOnSave.setDrivingTime(drivingTime);
+                analiseOnSave.setEngineIdlingTime(engineIdlingTime);
+                analiseOnSave.setEngineInMotionTime(engineInMotionTime);
+                analiseOnSave.setEngineMaxRpmTime(engineMaxRpmTime);
+                analiseOnSave.setEngineNormaRpmTime(engineNormaRpmTime);
+                analiseOnSave.setEngineOffTime(engineOffTime);
+                analiseOnSave.setTransportId(e);
+                analiseOnSave.setEngineOperatingTime(engineOperatingTime);
+                analiseOnSave.setEngineWOMotionTime(engineWOMotionTime);
+                analiseOnSave.setFinalFuelVolume(finalFuelVolume);
+                analiseOnSave.setInitialFuelVolume(initialFuelVolume);
+                analiseOnSave.setEngineUnderLoadTime(engineUnderLoadTime);
+                analiseOnSave.setDays(day);
+                analiseRepository.save(analiseOnSave);
+
+                mileageYear = mileage;
+                drivingTimeYear = drivingTime;
+                engineOperatingTimeYear = engineOperatingTime;
+                engineInMotionTimeYear = engineInMotionTime;
+                engineWOMotionTimeYear = engineWOMotionTime;
+                engineIdlingTimeYear = engineIdlingTime;
+                engineNormaRpmTimeYear = engineNormaRpmTime;
+                engineMaxRpmTimeYear = engineMaxRpmTime;
+                engineOffTimeYear = engineOffTime;
+                engineUnderLoadTimeYear = engineUnderLoadTime;
+                initialFuelVolumeYear = initialFuelVolume;
+                finalFuelVolumeYear = finalFuelVolume;
+                dayYear = day;
+            }
+
+            mileage = 0;
+            drivingTime = 0;
+            engineOperatingTime = 0;
+            engineInMotionTime = 0;
+            engineWOMotionTime = 0;
+            engineIdlingTime = 0;
+            engineNormaRpmTime = 0;
+            engineMaxRpmTime = 0;
+            engineOffTime = 0;
+            engineUnderLoadTime = 0;
+            initialFuelVolume = 0;
+            finalFuelVolume = 0;
+            day = 0;
+
+            for(int j : leto) //за летний период 14
+            {
+                analiseOptional = analiseRepository.findByTransportIdAndMonth(e,j);
+                if(analiseOptional.isPresent())
+                {
+                    analise = analiseOptional.get();
+                    mileage += analise.getMileage();
+                    drivingTime += analise.getDrivingTime();
+                    engineOperatingTime += analise.getEngineOperatingTime();
+                    engineInMotionTime += analise.getEngineInMotionTime();
+                    engineWOMotionTime += analise.getEngineWOMotionTime();
+                    engineIdlingTime += analise.getEngineIdlingTime();
+                    engineNormaRpmTime += analise.getEngineNormaRpmTime();
+                    engineMaxRpmTime += analise.getEngineMaxRpmTime();
+                    engineOffTime += analise.getEngineOffTime();
+                    engineUnderLoadTime += analise.getEngineUnderLoadTime();
+                    initialFuelVolume += analise.getInitialFuelVolume();
+                    finalFuelVolume += analise.getFinalFuelVolume();
+                    day += analise.getDays();
+                }
+            }
+            if(!analiseRepository.findByTransportIdAndMonth(e,14).isPresent())
+            {
+                Analise analiseOnSave = new Analise();
+                analiseOnSave.setMonth(14);
+                analiseOnSave.setMileage(mileage);
+                analiseOnSave.setDrivingTime(drivingTime);
+                analiseOnSave.setEngineIdlingTime(engineIdlingTime);
+                analiseOnSave.setEngineInMotionTime(engineInMotionTime);
+                analiseOnSave.setEngineMaxRpmTime(engineMaxRpmTime);
+                analiseOnSave.setEngineNormaRpmTime(engineNormaRpmTime);
+                analiseOnSave.setEngineOffTime(engineOffTime);
+                analiseOnSave.setTransportId(e);
+                analiseOnSave.setEngineOperatingTime(engineOperatingTime);
+                analiseOnSave.setEngineWOMotionTime(engineWOMotionTime);
+                analiseOnSave.setFinalFuelVolume(finalFuelVolume);
+                analiseOnSave.setInitialFuelVolume(initialFuelVolume);
+                analiseOnSave.setEngineUnderLoadTime(engineUnderLoadTime);
+                analiseOnSave.setDays(day);
+                analiseRepository.save(analiseOnSave);
+
+                mileageYear += mileage;
+                drivingTimeYear += drivingTime;
+                engineOperatingTimeYear += engineOperatingTime;
+                engineInMotionTimeYear += engineInMotionTime;
+                engineWOMotionTimeYear += engineWOMotionTime;
+                engineIdlingTimeYear += engineIdlingTime;
+                engineNormaRpmTimeYear += engineNormaRpmTime;
+                engineMaxRpmTimeYear += engineMaxRpmTime;
+                engineOffTimeYear += engineOffTime;
+                engineUnderLoadTimeYear += engineUnderLoadTime;
+                initialFuelVolumeYear += initialFuelVolume;
+                finalFuelVolumeYear += finalFuelVolume;
+                dayYear += day;
+            }
+
+            if(!analiseRepository.findByTransportIdAndMonth(e,15).isPresent())
+            {
+                Analise analiseOnSave = new Analise();
+                analiseOnSave.setMonth(15);
+                analiseOnSave.setMileage(mileageYear);
+                analiseOnSave.setDrivingTime(drivingTimeYear);
+                analiseOnSave.setEngineIdlingTime(engineIdlingTimeYear);
+                analiseOnSave.setEngineInMotionTime(engineInMotionTimeYear);
+                analiseOnSave.setEngineMaxRpmTime(engineMaxRpmTimeYear);
+                analiseOnSave.setEngineNormaRpmTime(engineNormaRpmTimeYear);
+                analiseOnSave.setEngineOffTime(engineOffTimeYear);
+                analiseOnSave.setTransportId(e);
+                analiseOnSave.setEngineOperatingTime(engineOperatingTimeYear);
+                analiseOnSave.setEngineWOMotionTime(engineWOMotionTimeYear);
+                analiseOnSave.setFinalFuelVolume(finalFuelVolumeYear);
+                analiseOnSave.setInitialFuelVolume(initialFuelVolumeYear);
+                analiseOnSave.setEngineUnderLoadTime(engineUnderLoadTimeYear);
+                analiseOnSave.setDays(dayYear);
+                analiseRepository.save(analiseOnSave);
+            }
+
+        }
+
+
+
+        return HttpStatus.ACCEPTED;
+    }
+    @RequestMapping(value = "/makeCalendar3", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public HttpStatus getCalendarYearEnd(Model model) throws ParseException
+    {
+        List<Vehicles> vehicles = vehiclesRepository.findAll();
+        List<String> ids = new ArrayList<>();
+        vehicles.forEach(e ->ids.add(e.getId()));
+        Optional<Analise> analiseOptional;
+        Optional<Dataset> datasetOptional;
+        Analise analise;
+
+        double mileage = 0;
+        long drivingTime = 0;
+        long engineOperatingTime = 0;
+        long engineInMotionTime = 0;
+        long engineWOMotionTime = 0;
+        long engineIdlingTime = 0;
+        long engineNormaRpmTime = 0;
+        long engineMaxRpmTime = 0;
+        long engineOffTime = 0;
+        long engineUnderLoadTime = 0;
+        double initialFuelVolume = 0;
+        double finalFuelVolume = 0;
+        int day = 1;
+
+        for(String e : ids)
+        {
+            analiseOptional = analiseRepository.findByTransportIdAndMonth(e,15);
+            if(analiseOptional.isPresent())
+            {
+                analise = analiseOptional.get();
+                mileage += analise.getMileage();
+                drivingTime += analise.getDrivingTime();
+                engineOperatingTime += analise.getEngineOperatingTime();
+                engineInMotionTime += analise.getEngineInMotionTime();
+                engineWOMotionTime += analise.getEngineWOMotionTime();
+                engineIdlingTime += analise.getEngineIdlingTime();
+                engineNormaRpmTime += analise.getEngineNormaRpmTime();
+                engineMaxRpmTime += analise.getEngineMaxRpmTime();
+                engineOffTime += analise.getEngineOffTime();
+                engineUnderLoadTime += analise.getEngineUnderLoadTime();
+                initialFuelVolume += analise.getInitialFuelVolume();
+                finalFuelVolume += analise.getFinalFuelVolume();
+                day += analise.getDays();
+            }
+        }
+
+        if(!analiseRepository.findByTransportIdAndMonth("ALLSUM",16).isPresent())
+        {
+            Analise analiseOnSave = new Analise();
+            analiseOnSave.setMonth(16);
+            analiseOnSave.setMileage(mileage);
+            analiseOnSave.setDrivingTime(drivingTime);
+            analiseOnSave.setEngineIdlingTime(engineIdlingTime);
+            analiseOnSave.setEngineInMotionTime(engineInMotionTime);
+            analiseOnSave.setEngineMaxRpmTime(engineMaxRpmTime);
+            analiseOnSave.setEngineNormaRpmTime(engineNormaRpmTime);
+            analiseOnSave.setEngineOffTime(engineOffTime);
+            analiseOnSave.setTransportId("ALLSUM");
+            analiseOnSave.setEngineOperatingTime(engineOperatingTime);
+            analiseOnSave.setEngineWOMotionTime(engineWOMotionTime);
+            analiseOnSave.setFinalFuelVolume(finalFuelVolume);
+            analiseOnSave.setInitialFuelVolume(initialFuelVolume);
+            analiseOnSave.setEngineUnderLoadTime(engineUnderLoadTime);
+            analiseOnSave.setDays(day);
+            analiseRepository.save(analiseOnSave);
+        }
+        return HttpStatus.ACCEPTED;
+    }
+
+    @RequestMapping(value = "/makeCalendar4", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public HttpStatus makeCalendarYearEnded(Model model)
+    {
+        List<Vehicles> vehicles = vehiclesRepository.findAll();
+        List<String> ids = new ArrayList<>();
+        vehicles.forEach(e ->ids.add(e.getId()));
+        Optional<Analise> analiseOptional;
+        Optional<Dataset> datasetOptional;
+        Analise analise;
+
+        double mileage = 0;
+        long drivingTime = 0;
+        long engineOperatingTime = 0;
+        long engineInMotionTime = 0;
+        long engineWOMotionTime = 0;
+        long engineIdlingTime = 0;
+        long engineNormaRpmTime = 0;
+        long engineMaxRpmTime = 0;
+        long engineOffTime = 0;
+        long engineUnderLoadTime = 0;
+        double initialFuelVolume = 0;
+        double finalFuelVolume = 0;
+        int day = 1;
+
+        for(String e : ids)
+        {
+            analiseOptional = analiseRepository.findByTransportIdAndMonth(e,14);
+            if(analiseOptional.isPresent())
+            {
+                analise = analiseOptional.get();
+                mileage += analise.getMileage();
+                drivingTime += analise.getDrivingTime();
+                engineOperatingTime += analise.getEngineOperatingTime();
+                engineInMotionTime += analise.getEngineInMotionTime();
+                engineWOMotionTime += analise.getEngineWOMotionTime();
+                engineIdlingTime += analise.getEngineIdlingTime();
+                engineNormaRpmTime += analise.getEngineNormaRpmTime();
+                engineMaxRpmTime += analise.getEngineMaxRpmTime();
+                engineOffTime += analise.getEngineOffTime();
+                engineUnderLoadTime += analise.getEngineUnderLoadTime();
+                initialFuelVolume += analise.getInitialFuelVolume();
+                finalFuelVolume += analise.getFinalFuelVolume();
+                day += analise.getDays();
+            }
+        }
+
+        if(!analiseRepository.findByTransportIdAndMonth("ALLSUM_Leto",16).isPresent())
+        {
+            Analise analiseOnSave = new Analise();
+            analiseOnSave.setMonth(16);
+            analiseOnSave.setMileage(mileage);
+            analiseOnSave.setDrivingTime(drivingTime);
+            analiseOnSave.setEngineIdlingTime(engineIdlingTime);
+            analiseOnSave.setEngineInMotionTime(engineInMotionTime);
+            analiseOnSave.setEngineMaxRpmTime(engineMaxRpmTime);
+            analiseOnSave.setEngineNormaRpmTime(engineNormaRpmTime);
+            analiseOnSave.setEngineOffTime(engineOffTime);
+            analiseOnSave.setTransportId("ALLSUM_Leto");
+            analiseOnSave.setEngineOperatingTime(engineOperatingTime);
+            analiseOnSave.setEngineWOMotionTime(engineWOMotionTime);
+            analiseOnSave.setFinalFuelVolume(finalFuelVolume);
+            analiseOnSave.setInitialFuelVolume(initialFuelVolume);
+            analiseOnSave.setEngineUnderLoadTime(engineUnderLoadTime);
+            analiseOnSave.setDays(day);
+            analiseRepository.save(analiseOnSave);
+        }
+        return HttpStatus.ACCEPTED;
+    }
+    @RequestMapping(value = "/makeCalendar1", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public HttpStatus getCalendarYear(Model model)
     {
         List<Vehicles> vehicles = vehiclesRepository.findAll();
         List<String> ids = new ArrayList<>();
@@ -138,7 +526,6 @@ public class DatasetController
 
         for(String e : ids)
         {
-
             for(int j = 0; j < 12; j++)
             {
 
@@ -195,7 +582,6 @@ public class DatasetController
                     analise.setInitialFuelVolume(initialFuelVolume);
                     analise.setEngineUnderLoadTime(engineUnderLoadTime);
                     analise.setDays(day);
-
                     analiseRepository.save(analise);
             }
         }
@@ -218,8 +604,14 @@ public class DatasetController
                 collect(Collectors.toList());
     }
 
+    @RequestMapping(value = "/getAnaliseByIdAndMonth", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Analise getAnaliseById(String Id, int Month, Model model)
+    {
+        Optional<Analise> list = analiseRepository.findByTransportIdAndMonth(Id,Month);
 
+        return list.get();
 
+    }
 
     @RequestMapping(value = "/getAllDatasetByIdAndDateAndDate", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<DatasetResponse> getAllDatasetByTransportIdAndDateAndDate(String Id, String Date1, String Date2, Model model) throws ParseException
@@ -266,6 +658,18 @@ public class DatasetController
         List<Dataset> datasetsAll = new ArrayList<Dataset>();
 
         datasetRepository.findAll().forEach(datasetsAll::add);
+        List<Date> gg = datasetsAll.stream().map(dataset -> dataset.getDate()).distinct().collect(Collectors.toList());
+
+        return gg.stream().map(date -> new StringResponse(date.getDate()+"."+(date.getMonth()+1)+"."+(1900+date.getYear()))).distinct()
+                .collect(Collectors.toList());
+    }
+
+    @RequestMapping(value = "/getAllDateById", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<StringResponse> getAllDateById(String Id, Model model)
+    {
+        List<Dataset> datasetsAll = new ArrayList<Dataset>();
+
+        datasetRepository.findAllByTransportId(Id).forEach(datasetsAll::add);
         List<Date> gg = datasetsAll.stream().map(dataset -> dataset.getDate()).distinct().collect(Collectors.toList());
 
         return gg.stream().map(date -> new StringResponse(date.getDate()+"."+(date.getMonth()+1)+"."+(1900+date.getYear()))).distinct()

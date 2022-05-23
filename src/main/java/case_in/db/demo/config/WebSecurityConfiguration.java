@@ -34,7 +34,10 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter
                         "/getAllType","/getDatasetById","/getAllDatasetById",
                         "/getAllDatasetByIdAndMonth","/getAllDate",
                         "/getAllDatasetByIdAndDateAndDate", "/getAnaliseByIdAndDateAndDate",
-                        "/makeCalendarYear","/getAllAnaliseById")
+                        "/makeCalendar1","/getAllAnaliseById",
+                        "/makeCalendar2", "/getAllDateById",
+                        "/makeCalendar3", "/makeCalendar4", "/makeCalendar5",
+                        "/getAnaliseByIdAndMonth")
                 .not().fullyAuthenticated()
                 //Доступ только для пользователей с ролью Администратор
                 .antMatchers("/admin/**").hasRole("ADMIN")

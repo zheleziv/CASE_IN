@@ -177,4 +177,37 @@ public class Analise
     private double initialFuelVolume;
     @Column(name="sum_final_fuel_volume")
     private double finalFuelVolume;
+
+    public double getDifEngineOffTime() {
+        return difEngineOffTime;
+    }
+
+    public void setDifEngineOffTime(double difEngineOffTime) {
+        this.difEngineOffTime = difEngineOffTime;
+    }
+    //nastoyashii analiz
+    @Column(name="dif_engine_off_time")
+    private double difEngineOffTime;
+
+    public int getSeason() {
+        return season;
+    }
+
+    public void setSeason(int season) {
+        this.season = season;
+    }
+
+    @Column(name="season")
+    private int season;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    @Column(name="type")
+    private String type;
 }

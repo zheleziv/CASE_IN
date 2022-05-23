@@ -210,7 +210,10 @@ public class excelReader
             Matcher matcher = pattern.matcher(incell.getStringCellValue());
             if(matcher.find()) return incell.getStringCellValue();
         }
-
+        if((incell != null) && (incell.getCellType() == Cell.CELL_TYPE_NUMERIC))
+        {
+            return "23:59:59";
+        }
         return "00:00:00";
     }
 
